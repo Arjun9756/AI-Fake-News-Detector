@@ -14,15 +14,15 @@ An AI-powered system that helps detect fake news by analyzing news content and U
 ## Tech Stack
 
 - Frontend: HTML, JavaScript, TailwindCSS
-- Backend: Node.js, Express
+- Backend: Node.js, Express , MongoDB , Groq API
 - AI: Groq API (Mixtral-8x7b-32768 model)
 
 ## Setup Instructions
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/truthguard.git
-cd truthguard
+git clone https://github.com/Arjun9756/AI-Fake-News-Detector
+cd AI-Fake-News-Detector
 ```
 
 2. Install dependencies:
