@@ -2,7 +2,7 @@ const express = require('express')
 const router = express.Router()
 const tokenVerify = require('../MiddleWares/TokenVerify')
 const { Groq } = require('groq-sdk')
-const groq = new Groq({apiKey:process.env.GROQ_API_KEY});
+const groq = new Groq({apiKey:"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"});
 
 async function detectNews(newsText, newsLink) {
     const prompt = `You are a professional fact-checker and news authenticity analyzer. Analyze the following news content and URL carefully:
