@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search API Test</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .search-container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .search-form {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .search-input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        .search-button {
+            padding: 10px 20px;
+            background-color: #4a90e2;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .search-button:hover {
+            background-color: #3a7fcb;
+        }
+        .results-container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: none;
+        }
+        .result-item {
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eee;
+        }
+        .result-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+        .result-title {
+            color: #1a0dab;
+            font-size: 18px;
+            margin-bottom: 5px;
+            text-decoration: none;
+        }
+        .result-title:hover {
+            text-decoration: underline;
+        }
+        .result-snippet {
+            color: #545454;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+        .result-url {
+            color: #006621;
+            font-size: 12px;
+        }
+        .loading {
+            text-align: center;
+            padding: 20px;
+            display: none;
+        }
+        .error {
+            background-color: #ffdddd;
+            color: #d8000c;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        .api-details {
+            background-color: #e6f3ff;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+        .debug {
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 20px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>Search API Test</h1>
+    
+    <div class="api-details">
+        <p><strong>Endpoint:</strong> http://localhost:5000/search</p>
+        <p><strong>Method:</strong> POST</p>
+        <p><strong>Body:</strong> JSON with "query" parameter</p>
+    </div>
+    
+    <div class="error" id="error-message"></div>
+    
+    <div class="search-container">
+        <div class="search-form">
+            <input 
+                type="text" 
+                id="search-input" 
+                class="search-input" 
+                placeholder="Enter search query..."
+                value="WhatsApp charging money"
+            >
+            <button type="button" id="search-button" class="search-button">Search</button>
+        </div>
+    </div>
+    
+    <div class="loading" id="loading">
+        <p>Searching...</p>
+    </div>
+    
+    <div class="results-container" id="results-container">
+        <h2>Search Results</h2>
+        <div id="results-list"></div>
+    </div>
+    
+    <div class="debug" id="debug">
+        <h3>Debug Information</h3>
+        <div id="debug-content"></div>
+    </div>
+    
+    <script>
+        document.getElementById('search-button').addEventListener('click', performSearch);
+        document.getElementById('search-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                performSearch();
+            }
+        });
+        
+        async function performSearch() {
+            const query = document.getElementById('search-input').value.trim();
+            if (!query) {
+                showError('Please enter a search query');
+                return;
+            }
+            
+            // Reset UI
+            document.getElementById('error-message').style.display = 'none';
+            document.getElementById('results-container').style.display = 'none';
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('debug').style.display = 'none';
+            
+            try {
+                const response = await fetch('http://localhost:5000/search', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ query })
+                });
+                
+                const data = await response.json();
+                
+                // Debug info
+                document.getElementById('debug-content').textContent = JSON.stringify(data, null, 2);
+                document.getElementById('debug').style.display = 'block';
+                
+                // Hide loading
+                document.getElementById('loading').style.display = 'none';
+                
+                if (!response.ok) {
+                    showError('Server error: ' + (data.error || response.statusText));
+                    return;
+                }
+                
+                if (!data.data || data.data.length === 0) {
+                    document.getElementById('results-list').innerHTML = '<p>No results found.</p>';
+                } else {
+                    let resultsHTML = '';
+                    
+                    data.data.forEach(result => {
+                        resultsHTML += `
+                            <div class="result-item">
+                                <a href="${result.link}" target="_blank" class="result-title">${result.title}</a>
+                                <div class="result-snippet">${result.snippet}</div>
+                                <div class="result-url">${result.displayLink || result.link}</div>
+                            </div>
+                        `;
+                    });
+                    
+                    document.getElementById('results-list').innerHTML = resultsHTML;
+                }
+                
+                document.getElementById('results-container').style.display = 'block';
+                
+            } catch (error) {
+                console.error('Error:', error);
+                showError('Error: ' + error.message);
+                document.getElementById('loading').style.display = 'none';
+            }
+        }
+        
+        function showError(message) {
+            const errorElement = document.getElementById('error-message');
+            errorElement.textContent = message;
+            errorElement.style.display = 'block';
+            document.getElementById('loading').style.display = 'none';
+        }
+    </script>
+</body>
+</html> 
